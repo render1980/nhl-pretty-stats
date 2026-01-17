@@ -1,0 +1,694 @@
+openapi: 3.0.0
+info:
+  title: NHL Pretty Stats Service API
+  description: REST API service for fetching and caching NHL statistics from the NHL API with response caching capabilities
+  version: 1.0.0
+  contact:
+    name: NHL Pretty Stats
+    url: https://github.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://localhost:8080
+    description: Local development server (HTTPS)
+
+tags:
+  - name: Health
+    description: Service health and status checks
+  - name: Players
+    description: Player statistics and information
+  - name: Standings
+    description: Team standings data
+  - name: Teams
+    description: Team player statistics
+
+paths:
+  /:
+    get:
+      tags:
+        - Health
+      summary: Service health check
+      description: Returns a welcome message and verifies the service is running
+      operationId: rootHealthCheck
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: NHL Stats Fetcher
+
+  /player/{player_id}/stats:
+    get:
+      tags:
+        - Players
+      summary: Get player statistics
+      description: |
+        Retrieve comprehensive player information including career totals and season-by-season statistics.
+        Results are cached for 24 hours. Example: http://localhost:8080/player/8478402/stats
+      operationId: getPlayerStats
+      parameters:
+        - name: player_id
+          in: path
+          required: true
+          description: The unique identifier of the player
+          schema:
+            type: integer
+            format: int32
+            example: 8478402
+      responses:
+        '200':
+          description: Successfully retrieved player statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerLanding'
+        '400':
+          description: Invalid player ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Player not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error or upstream API failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /standings:
+    get:
+      tags:
+        - Standings
+      summary: Get team standings for a specific date
+      description: |
+        Retrieve standings information for all teams as of a given date.
+        Results are cached for 24 hours. Example: http://localhost:8080/standings?date=2024-01-15
+      operationId: getTeamStandings
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Date in YYYY-MM-DD format
+          schema:
+            type: string
+            format: date
+            example: '2024-01-15'
+      responses:
+        '200':
+          description: Successfully retrieved standings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamStandings'
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No standings data for the provided date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error or upstream API failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /club/{club_abbr}/season/{season_id}/stats:
+    get:
+      tags:
+        - Teams
+      summary: Get club player statistics
+      description: |
+        Retrieve player statistics for a specific club in a given season and game type.
+        Results are cached for 24 hours.
+        Example: http://localhost:8080/club/EDM/season/20242025/stats?game_type_id=2
+      operationId: getClubPlayerStats
+      parameters:
+        - name: club_abbr
+          in: path
+          required: true
+          description: Three-letter team abbreviation (e.g., EDM, TOR, LAK)
+          schema:
+            type: string
+            example: EDM
+        - name: season_id
+          in: path
+          required: true
+          description: NHL season in YYYYyyyy format (e.g., 20242025 for 2024-25 season)
+          schema:
+            type: integer
+            format: int32
+            example: 20242025
+        - name: game_type_id
+          in: query
+          required: true
+          description: Game type ID (2=Regular Season, 3=Playoffs)
+          schema:
+            type: integer
+            format: int32
+            enum: [2, 3]
+            example: 2
+      responses:
+        '200':
+          description: Successfully retrieved club statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubStats'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Club not found or no data available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error or upstream API failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message details
+        status_code:
+          type: integer
+          description: HTTP status code
+      required:
+        - detail
+
+    PlayerName:
+      type: object
+      properties:
+        default:
+          type: string
+          description: Player name in default language
+      required:
+        - default
+
+    PlayerTotalStats:
+      type: object
+      properties:
+        assists:
+          type: integer
+          nullable: true
+        avgToi:
+          type: string
+          nullable: true
+        faceoffWinningPctg:
+          type: number
+          format: float
+          nullable: true
+        gameTypeId:
+          type: integer
+          nullable: true
+        gameWinningGoals:
+          type: integer
+          nullable: true
+        gamesPlayed:
+          type: integer
+          nullable: true
+        goals:
+          type: integer
+          nullable: true
+        otGoals:
+          type: integer
+          nullable: true
+        pim:
+          type: integer
+          nullable: true
+        plusMinus:
+          type: integer
+          nullable: true
+        points:
+          type: integer
+          nullable: true
+        powerPlayGoals:
+          type: integer
+          nullable: true
+        powerPlayPoints:
+          type: integer
+          nullable: true
+        season:
+          type: integer
+          nullable: true
+        shorthandedGoals:
+          type: integer
+          nullable: true
+        shorthandedPoints:
+          type: integer
+          nullable: true
+        shots:
+          type: integer
+          nullable: true
+        shootingPctg:
+          type: number
+          format: float
+          nullable: true
+
+    CareerTotals:
+      type: object
+      properties:
+        regularSeason:
+          $ref: '#/components/schemas/PlayerTotalStats'
+        playoffs:
+          $ref: '#/components/schemas/PlayerTotalStats'
+      required:
+        - regularSeason
+        - playoffs
+
+    PlayerSeasonStats:
+      type: object
+      properties:
+        gameTypeId:
+          type: integer
+          nullable: true
+        season:
+          type: integer
+          nullable: true
+        gamesPlayed:
+          type: integer
+          nullable: true
+        goals:
+          type: integer
+          nullable: true
+        leagueAbbrev:
+          type: string
+          nullable: true
+        pim:
+          type: integer
+          nullable: true
+        points:
+          type: integer
+          nullable: true
+        assists:
+          type: integer
+          nullable: true
+        gameWinningGoals:
+          type: integer
+          nullable: true
+        powerPlayGoals:
+          type: integer
+          nullable: true
+        shorthandedGoals:
+          type: integer
+          nullable: true
+        shots:
+          type: integer
+          nullable: true
+
+    PlayerLanding:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          format: int32
+          description: Unique player identifier
+        isActive:
+          type: boolean
+          description: Whether the player is currently active
+        currentTeamId:
+          type: integer
+          nullable: true
+          description: Current team ID
+        currentTeamAbbrev:
+          type: string
+          nullable: true
+          description: Current team abbreviation
+        firstName:
+          $ref: '#/components/schemas/PlayerName'
+        lastName:
+          $ref: '#/components/schemas/PlayerName'
+        careerTotals:
+          $ref: '#/components/schemas/CareerTotals'
+        seasonTotals:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerSeasonStats'
+          description: Season-by-season statistics
+      required:
+        - playerId
+        - isActive
+        - firstName
+        - lastName
+        - careerTotals
+        - seasonTotals
+
+    ClubStatsSkater:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          format: int32
+        firstName:
+          $ref: '#/components/schemas/PlayerName'
+        lastName:
+          $ref: '#/components/schemas/PlayerName'
+        positionCode:
+          type: string
+          description: Position code (C, LW, RW, D)
+        gamesPlayed:
+          type: integer
+        goals:
+          type: integer
+        assists:
+          type: integer
+        points:
+          type: integer
+        plusMinus:
+          type: integer
+        penaltyMinutes:
+          type: integer
+        powerPlayGoals:
+          type: integer
+        shorthandedGoals:
+          type: integer
+        gameWinningGoals:
+          type: integer
+        overtimeGoals:
+          type: integer
+        shots:
+          type: integer
+        shootingPctg:
+          type: number
+          format: float
+        avgTimeOnIcePerGame:
+          type: number
+          format: float
+        avgShiftsPerGame:
+          type: number
+          format: float
+        faceoffWinPctg:
+          type: number
+          format: float
+      required:
+        - playerId
+        - firstName
+        - lastName
+        - positionCode
+        - gamesPlayed
+        - goals
+        - assists
+        - points
+        - plusMinus
+        - penaltyMinutes
+        - powerPlayGoals
+        - shorthandedGoals
+        - gameWinningGoals
+        - overtimeGoals
+        - shots
+        - shootingPctg
+        - avgTimeOnIcePerGame
+        - avgShiftsPerGame
+        - faceoffWinPctg
+
+    ClubStatsGoalie:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          format: int32
+        firstName:
+          $ref: '#/components/schemas/PlayerName'
+        lastName:
+          $ref: '#/components/schemas/PlayerName'
+        gamesPlayed:
+          type: integer
+        gamesStarted:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        overtimeLosses:
+          type: integer
+        goalsAgainstAverage:
+          type: number
+          format: float
+        savePercentage:
+          type: number
+          format: float
+        shotsAgainst:
+          type: integer
+        saves:
+          type: integer
+        goalsAgainst:
+          type: integer
+        shutouts:
+          type: integer
+        goals:
+          type: integer
+        assists:
+          type: integer
+        points:
+          type: integer
+        penaltyMinutes:
+          type: integer
+        timeOnIce:
+          type: integer
+      required:
+        - playerId
+        - firstName
+        - lastName
+        - gamesPlayed
+        - gamesStarted
+        - wins
+        - losses
+        - overtimeLosses
+        - goalsAgainstAverage
+        - savePercentage
+        - shotsAgainst
+        - saves
+        - goalsAgainst
+        - shutouts
+        - goals
+        - assists
+        - points
+        - penaltyMinutes
+        - timeOnIce
+
+    ClubStats:
+      type: object
+      properties:
+        season:
+          type: string
+          example: '20242025'
+          description: Season in YYYYyyyy format
+        gameType:
+          type: integer
+          description: Game type (2=Regular Season, 3=Playoffs)
+        skaters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClubStatsSkater'
+          description: List of skater statistics
+        goalies:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClubStatsGoalie'
+          description: List of goalie statistics
+      required:
+        - season
+        - gameType
+        - skaters
+        - goalies
+
+    TeamStanding:
+      type: object
+      properties:
+        conferenceAbbrev:
+          type: string
+          nullable: true
+        conferenceName:
+          type: string
+          nullable: true
+        divisionAbbrev:
+          type: string
+          nullable: true
+        divisionName:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+        gameTypeId:
+          type: integer
+          nullable: true
+        gamesPlayed:
+          type: integer
+          nullable: true
+        goalDifferential:
+          type: integer
+          nullable: true
+        goalDifferentialPctg:
+          type: number
+          format: float
+          nullable: true
+        goalAgainst:
+          type: integer
+          nullable: true
+        goalFor:
+          type: integer
+          nullable: true
+        goalsForPctg:
+          type: number
+          format: float
+          nullable: true
+        homeGamesPlayed:
+          type: integer
+          nullable: true
+        homeGoalDifferential:
+          type: integer
+          nullable: true
+        homeGoalsAgainst:
+          type: integer
+          nullable: true
+        homeGoalsFor:
+          type: integer
+          nullable: true
+        homeLosses:
+          type: integer
+          nullable: true
+        homeOtLosses:
+          type: integer
+          nullable: true
+        homePoints:
+          type: integer
+          nullable: true
+        homeWins:
+          type: integer
+          nullable: true
+        l10GamesPlayed:
+          type: integer
+          nullable: true
+        l10GoalDifferential:
+          type: integer
+          nullable: true
+        l10GoalsAgainst:
+          type: integer
+          nullable: true
+        l10GoalsFor:
+          type: integer
+          nullable: true
+        l10Losses:
+          type: integer
+          nullable: true
+        l10OtLosses:
+          type: integer
+          nullable: true
+        l10Points:
+          type: integer
+          nullable: true
+        l10Wins:
+          type: integer
+          nullable: true
+        losses:
+          type: integer
+          nullable: true
+        otLosses:
+          type: integer
+          nullable: true
+        pointPctg:
+          type: number
+          format: float
+          nullable: true
+        points:
+          type: integer
+          nullable: true
+        regulationPlusOtWins:
+          type: integer
+          nullable: true
+        regulationWins:
+          type: integer
+          nullable: true
+        roadGamesPlayed:
+          type: integer
+          nullable: true
+        roadGoalDifferential:
+          type: integer
+          nullable: true
+        roadGoalsAgainst:
+          type: integer
+          nullable: true
+        roadGoalsFor:
+          type: integer
+          nullable: true
+        roadLosses:
+          type: integer
+          nullable: true
+        roadOtLosses:
+          type: integer
+          nullable: true
+        roadPoints:
+          type: integer
+          nullable: true
+        roadWins:
+          type: integer
+          nullable: true
+        seasonId:
+          type: integer
+          nullable: true
+        teamName:
+          $ref: '#/components/schemas/TeamStandingsTeamName'
+        ties:
+          type: integer
+          nullable: true
+        wins:
+          type: integer
+          nullable: true
+      required:
+        - date
+        - teamName
+
+    TeamStandingsTeamName:
+      type: object
+      properties:
+        default:
+          type: string
+          description: Team name in default language
+      required:
+        - default
+
+    TeamStandings:
+      type: object
+      properties:
+        wildCardIndicator:
+          type: boolean
+          description: Indicates if any teams have wild card status
+        standings:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamStanding'
+          description: Array of team standings
+      required:
+        - wildCardIndicator
+        - standings

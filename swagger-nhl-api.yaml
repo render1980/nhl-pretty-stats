@@ -1,0 +1,939 @@
+openapi: 3.0.0
+info:
+  title: NHL Stats API (api-web.nhle.com)
+  description: API endpoints for accessing NHL statistics, player information, standings, and scores
+  version: 1.0.0
+  contact:
+    name: NHL
+    url: https://www.nhl.com
+
+servers:
+  - url: https://api-web.nhle.com/v1
+    description: Production NHL API
+
+tags:
+  - name: Players
+    description: Player information and statistics
+  - name: Teams
+    description: Team information and statistics
+  - name: Standings
+    description: League standings data
+  - name: Scores
+    description: Daily game scores
+  - name: Leaders
+    description: Statistical leaders
+
+paths:
+  /player/{playerId}/landing:
+    get:
+      tags:
+        - Players
+      summary: Get player landing page data
+      description: Retrieve comprehensive player information including career totals and season-by-season statistics
+      operationId: getPlayerLanding
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          description: The unique identifier of the player
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Successfully retrieved player data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerLanding'
+        '400':
+          description: Invalid player ID
+        '404':
+          description: Player not found
+        '500':
+          description: Server error
+
+  /club-stats/{clubAbbr}/{season}/{gametype}:
+    get:
+      tags:
+        - Teams
+      summary: Get club player statistics
+      description: Retrieve player statistics for a specific club in a given season and game type
+      operationId: getClubPlayerStats
+      parameters:
+        - name: clubAbbr
+          in: path
+          required: true
+          description: Three-letter team abbreviation (e.g., TOR, NYR, LAK)
+          schema:
+            type: string
+            example: TOR
+        - name: season
+          in: path
+          required: true
+          description: NHL season in YYYYyyyy format (e.g., 20232024 for 2023-24 season)
+          schema:
+            type: integer
+            format: int32
+            example: 20232024
+        - name: gametype
+          in: path
+          required: true
+          description: Game type (2=Regular Season, 3=Playoffs)
+          schema:
+            type: integer
+            format: int32
+            enum: [2, 3]
+      responses:
+        '200':
+          description: Successfully retrieved club statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubStats'
+        '400':
+          description: Invalid parameters
+        '404':
+          description: Club not found
+        '500':
+          description: Server error
+
+  /standings/{date}:
+    get:
+      tags:
+        - Standings
+      summary: Get team standings for a specific date
+      description: Retrieve standings information for all teams as of a given date
+      operationId: getTeamStandings
+      parameters:
+        - name: date
+          in: path
+          required: true
+          description: Date in YYYY-MM-DD format
+          schema:
+            type: string
+            format: date
+            example: '2024-01-15'
+      responses:
+        '200':
+          description: Successfully retrieved standings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamStandings'
+        '400':
+          description: Invalid date format
+        '404':
+          description: No standings data for the provided date
+        '500':
+          description: Server error
+
+  /skater-stats-leaders/{season}/{gametype}:
+    get:
+      tags:
+        - Leaders
+      summary: Get skater statistical leaders
+      description: Retrieve top skaters in various statistical categories for a given season and game type
+      operationId: getSkaterStatsLeaders
+      parameters:
+        - name: season
+          in: path
+          required: true
+          description: NHL season in YYYYYYY format (e.g., 20232024)
+          schema:
+            type: integer
+            format: int32
+            example: 20232024
+        - name: gametype
+          in: path
+          required: true
+          description: Game type (2=Regular Season, 3=Playoffs)
+          schema:
+            type: integer
+            format: int32
+            enum: [2, 3]
+        - name: categories
+          in: query
+          required: true
+          description: Comma-separated list of statistical categories to return (e.g., assists,goals,points)
+          schema:
+            type: string
+            example: 'assists,goals,points'
+        - name: limit
+          in: query
+          required: true
+          description: Number of top players to return for each category
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            example: 10
+      responses:
+        '200':
+          description: Successfully retrieved skater leaders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkaterStatsLeaders'
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Server error
+
+  /goalie-stats-leaders/{season}/{gametype}:
+    get:
+      tags:
+        - Leaders
+      summary: Get goalie statistical leaders
+      description: Retrieve top goalies in various statistical categories for a given season and game type
+      operationId: getGoalieStatsLeaders
+      parameters:
+        - name: season
+          in: path
+          required: true
+          description: NHL season in YYYYYYY format (e.g., 20232024)
+          schema:
+            type: integer
+            format: int32
+            example: 20232024
+        - name: gametype
+          in: path
+          required: true
+          description: Game type (2=Regular Season, 3=Playoffs)
+          schema:
+            type: integer
+            format: int32
+            enum: [2, 3]
+        - name: categories
+          in: query
+          required: true
+          description: Comma-separated list of statistical categories to return (e.g., wins,shutouts)
+          schema:
+            type: string
+            example: 'wins,shutouts'
+        - name: limit
+          in: query
+          required: true
+          description: Number of top goalies to return for each category
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            example: 10
+      responses:
+        '200':
+          description: Successfully retrieved goalie leaders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalieStatsLeaders'
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Server error
+
+  /score/{date}:
+    get:
+      tags:
+        - Scores
+      summary: Get daily game scores
+      description: Retrieve all game scores for a specific date
+      operationId: getDailyScores
+      parameters:
+        - name: date
+          in: path
+          required: true
+          description: Date in YYYY-MM-DD format
+          schema:
+            type: string
+            format: date
+            example: '2024-01-15'
+      responses:
+        '200':
+          description: Successfully retrieved daily scores
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Daily scores data
+        '400':
+          description: Invalid date format
+        '404':
+          description: No games found for the provided date
+        '500':
+          description: Server error
+
+  /roster/{season}/{teamId}:
+    get:
+      tags:
+        - Teams
+      summary: Get team roster
+      description: Retrieve the roster for a specific team in a given season
+      operationId: getTeamRoster
+      parameters:
+        - name: season
+          in: path
+          required: true
+          description: NHL season in YYYYYYY format (e.g., 20232024)
+          schema:
+            type: integer
+            format: int32
+            example: 20232024
+        - name: teamId
+          in: path
+          required: true
+          description: Unique team identifier
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Successfully retrieved team roster
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamRoster'
+        '400':
+          description: Invalid parameters
+        '404':
+          description: Team not found
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    PlayerName:
+      type: object
+      properties:
+        default:
+          type: string
+          description: Player name in default language
+      required:
+        - default
+
+    PlayerTotalStats:
+      type: object
+      properties:
+        assists:
+          type: integer
+          nullable: true
+        avgToi:
+          type: string
+          nullable: true
+        faceoffWinningPctg:
+          type: number
+          format: float
+          nullable: true
+        gameTypeId:
+          type: integer
+          nullable: true
+        gameWinningGoals:
+          type: integer
+          nullable: true
+        gamesPlayed:
+          type: integer
+          nullable: true
+        goals:
+          type: integer
+          nullable: true
+        otGoals:
+          type: integer
+          nullable: true
+        pim:
+          type: integer
+          nullable: true
+        plusMinus:
+          type: integer
+          nullable: true
+        points:
+          type: integer
+          nullable: true
+        powerPlayGoals:
+          type: integer
+          nullable: true
+        powerPlayPoints:
+          type: integer
+          nullable: true
+        season:
+          type: integer
+          nullable: true
+        shorthandedGoals:
+          type: integer
+          nullable: true
+        shorthandedPoints:
+          type: integer
+          nullable: true
+        shots:
+          type: integer
+          nullable: true
+        shootingPctg:
+          type: number
+          format: float
+          nullable: true
+
+    CareerTotals:
+      type: object
+      properties:
+        regularSeason:
+          $ref: '#/components/schemas/PlayerTotalStats'
+        playoffs:
+          $ref: '#/components/schemas/PlayerTotalStats'
+      required:
+        - regularSeason
+        - playoffs
+
+    PlayerSeasonStats:
+      type: object
+      properties:
+        gameTypeId:
+          type: integer
+          nullable: true
+        season:
+          type: integer
+          nullable: true
+        gamesPlayed:
+          type: integer
+          nullable: true
+        goals:
+          type: integer
+          nullable: true
+        leagueAbbrev:
+          type: string
+          nullable: true
+        pim:
+          type: integer
+          nullable: true
+        points:
+          type: integer
+          nullable: true
+        assists:
+          type: integer
+          nullable: true
+        gameWinningGoals:
+          type: integer
+          nullable: true
+        powerPlayGoals:
+          type: integer
+          nullable: true
+        shorthandedGoals:
+          type: integer
+          nullable: true
+        shots:
+          type: integer
+          nullable: true
+
+    PlayerLanding:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          format: int32
+          description: Unique player identifier
+        isActive:
+          type: boolean
+          description: Whether the player is currently active
+        currentTeamId:
+          type: integer
+          nullable: true
+          description: Current team ID
+        currentTeamAbbrev:
+          type: string
+          nullable: true
+          description: Current team abbreviation
+        firstName:
+          $ref: '#/components/schemas/PlayerName'
+        lastName:
+          $ref: '#/components/schemas/PlayerName'
+        careerTotals:
+          $ref: '#/components/schemas/CareerTotals'
+        seasonTotals:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerSeasonStats'
+      required:
+        - playerId
+        - isActive
+        - firstName
+        - lastName
+        - careerTotals
+        - seasonTotals
+
+    ClubStatsSkater:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          format: int32
+        firstName:
+          $ref: '#/components/schemas/PlayerName'
+        lastName:
+          $ref: '#/components/schemas/PlayerName'
+        positionCode:
+          type: string
+          description: Position code (C, LW, RW, D)
+        gamesPlayed:
+          type: integer
+        goals:
+          type: integer
+        assists:
+          type: integer
+        points:
+          type: integer
+        plusMinus:
+          type: integer
+        penaltyMinutes:
+          type: integer
+        powerPlayGoals:
+          type: integer
+        shorthandedGoals:
+          type: integer
+        gameWinningGoals:
+          type: integer
+        overtimeGoals:
+          type: integer
+        shots:
+          type: integer
+        shootingPctg:
+          type: number
+          format: float
+        avgTimeOnIcePerGame:
+          type: number
+          format: float
+        avgShiftsPerGame:
+          type: number
+          format: float
+        faceoffWinPctg:
+          type: number
+          format: float
+      required:
+        - playerId
+        - firstName
+        - lastName
+        - positionCode
+        - gamesPlayed
+        - goals
+        - assists
+        - points
+        - plusMinus
+        - penaltyMinutes
+        - powerPlayGoals
+        - shorthandedGoals
+        - gameWinningGoals
+        - overtimeGoals
+        - shots
+        - shootingPctg
+        - avgTimeOnIcePerGame
+        - avgShiftsPerGame
+        - faceoffWinPctg
+
+    ClubStatsGoalie:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          format: int32
+        firstName:
+          $ref: '#/components/schemas/PlayerName'
+        lastName:
+          $ref: '#/components/schemas/PlayerName'
+        gamesPlayed:
+          type: integer
+        gamesStarted:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        overtimeLosses:
+          type: integer
+        goalsAgainstAverage:
+          type: number
+          format: float
+        savePercentage:
+          type: number
+          format: float
+        shotsAgainst:
+          type: integer
+        saves:
+          type: integer
+        goalsAgainst:
+          type: integer
+        shutouts:
+          type: integer
+        goals:
+          type: integer
+        assists:
+          type: integer
+        points:
+          type: integer
+        penaltyMinutes:
+          type: integer
+        timeOnIce:
+          type: integer
+      required:
+        - playerId
+        - firstName
+        - lastName
+        - gamesPlayed
+        - gamesStarted
+        - wins
+        - losses
+        - overtimeLosses
+        - goalsAgainstAverage
+        - savePercentage
+        - shotsAgainst
+        - saves
+        - goalsAgainst
+        - shutouts
+        - goals
+        - assists
+        - points
+        - penaltyMinutes
+        - timeOnIce
+
+    ClubStats:
+      type: object
+      properties:
+        season:
+          type: string
+          example: '20232024'
+        gameType:
+          type: integer
+          description: Game type (2=Regular Season, 3=Playoffs)
+        skaters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClubStatsSkater'
+        goalies:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClubStatsGoalie'
+      required:
+        - season
+        - gameType
+        - skaters
+        - goalies
+
+    TeamStanding:
+      type: object
+      properties:
+        conferenceAbbrev:
+          type: string
+          nullable: true
+        conferenceName:
+          type: string
+          nullable: true
+        divisionAbbrev:
+          type: string
+          nullable: true
+        divisionName:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+        gameTypeId:
+          type: integer
+          nullable: true
+        gamesPlayed:
+          type: integer
+          nullable: true
+        goalDifferential:
+          type: integer
+          nullable: true
+        goalDifferentialPctg:
+          type: number
+          format: float
+          nullable: true
+        goalAgainst:
+          type: integer
+          nullable: true
+        goalFor:
+          type: integer
+          nullable: true
+        goalsForPctg:
+          type: number
+          format: float
+          nullable: true
+        homeGamesPlayed:
+          type: integer
+          nullable: true
+        homeGoalDifferential:
+          type: integer
+          nullable: true
+        homeGoalsAgainst:
+          type: integer
+          nullable: true
+        homeGoalsFor:
+          type: integer
+          nullable: true
+        homeLosses:
+          type: integer
+          nullable: true
+        homeOtLosses:
+          type: integer
+          nullable: true
+        homePoints:
+          type: integer
+          nullable: true
+        homeWins:
+          type: integer
+          nullable: true
+        l10GamesPlayed:
+          type: integer
+          nullable: true
+        l10GoalDifferential:
+          type: integer
+          nullable: true
+        l10GoalsAgainst:
+          type: integer
+          nullable: true
+        l10GoalsFor:
+          type: integer
+          nullable: true
+        l10Losses:
+          type: integer
+          nullable: true
+        l10OtLosses:
+          type: integer
+          nullable: true
+        l10Points:
+          type: integer
+          nullable: true
+        l10Wins:
+          type: integer
+          nullable: true
+        losses:
+          type: integer
+          nullable: true
+        otLosses:
+          type: integer
+          nullable: true
+        pointPctg:
+          type: number
+          format: float
+          nullable: true
+        points:
+          type: integer
+          nullable: true
+        regulationPlusOtWins:
+          type: integer
+          nullable: true
+        regulationWins:
+          type: integer
+          nullable: true
+        roadGamesPlayed:
+          type: integer
+          nullable: true
+        roadGoalDifferential:
+          type: integer
+          nullable: true
+        roadGoalsAgainst:
+          type: integer
+          nullable: true
+        roadGoalsFor:
+          type: integer
+          nullable: true
+        roadLosses:
+          type: integer
+          nullable: true
+        roadOtLosses:
+          type: integer
+          nullable: true
+        roadPoints:
+          type: integer
+          nullable: true
+        roadWins:
+          type: integer
+          nullable: true
+        seasonId:
+          type: integer
+          nullable: true
+        teamName:
+          $ref: '#/components/schemas/TeamStandingsTeamName'
+        ties:
+          type: integer
+          nullable: true
+        wins:
+          type: integer
+          nullable: true
+      required:
+        - date
+        - teamName
+
+    TeamStandingsTeamName:
+      type: object
+      properties:
+        default:
+          type: string
+          description: Team name in default language
+
+    TeamStandings:
+      type: object
+      properties:
+        wildCardIndicator:
+          type: boolean
+          description: Indicates if any teams have wild card status
+        standings:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamStanding'
+      required:
+        - wildCardIndicator
+        - standings
+
+    SkaterStatsLeadersPlayer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        first_name:
+          $ref: '#/components/schemas/PlayerName'
+        last_name:
+          $ref: '#/components/schemas/PlayerName'
+        sweater_number:
+          type: integer
+        team_abbrev:
+          type: string
+        team_name:
+          $ref: '#/components/schemas/TeamStandingsTeamName'
+        position:
+          type: string
+        value:
+          type: integer
+          description: Statistic value for the category
+      required:
+        - id
+        - first_name
+        - last_name
+        - sweater_number
+        - team_abbrev
+        - team_name
+        - position
+        - value
+
+    SkaterStatsLeaders:
+      type: object
+      properties:
+        assists:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkaterStatsLeadersPlayer'
+        goals:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkaterStatsLeadersPlayer'
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkaterStatsLeadersPlayer'
+
+    GoalieStatsLeadersPlayer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        first_name:
+          $ref: '#/components/schemas/PlayerName'
+        last_name:
+          $ref: '#/components/schemas/PlayerName'
+        sweater_number:
+          type: integer
+        team_abbrev:
+          type: string
+        team_name:
+          $ref: '#/components/schemas/TeamStandingsTeamName'
+        position:
+          type: string
+        value:
+          type: integer
+          description: Statistic value for the category
+      required:
+        - id
+        - first_name
+        - last_name
+        - sweater_number
+        - team_abbrev
+        - team_name
+        - position
+        - value
+
+    GoalieStatsLeaders:
+      type: object
+      properties:
+        wins:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoalieStatsLeadersPlayer'
+        shutouts:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoalieStatsLeadersPlayer'
+
+    RosterPlayerName:
+      type: object
+      properties:
+        default:
+          type: string
+          description: Player name in default language
+
+    RosterPlayerInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        first_name:
+          $ref: '#/components/schemas/RosterPlayerName'
+        last_name:
+          $ref: '#/components/schemas/RosterPlayerName'
+        sweater_number:
+          type: integer
+        position_code:
+          type: string
+          description: Position code (C, LW, RW, D, G)
+        shoots_catches:
+          type: string
+          description: Handedness (L or R)
+        height_in_centimeters:
+          type: integer
+        weight_in_kilograms:
+          type: integer
+        birth_date:
+          type: string
+          format: date
+        birth_country:
+          type: string
+      required:
+        - id
+        - first_name
+        - last_name
+        - sweater_number
+        - position_code
+        - shoots_catches
+        - height_in_centimeters
+        - weight_in_kilograms
+        - birth_date
+        - birth_country
+
+    TeamRoster:
+      type: object
+      properties:
+        forwards:
+          type: array
+          items:
+            $ref: '#/components/schemas/RosterPlayerInfo'
+        defensemen:
+          type: array
+          items:
+            $ref: '#/components/schemas/RosterPlayerInfo'
+        goalies:
+          type: array
+          items:
+            $ref: '#/components/schemas/RosterPlayerInfo'
+      required:
+        - forwards
+        - defensemen
+        - goalies
