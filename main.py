@@ -46,6 +46,8 @@ async def get_team_standings(date: str):
 @app.get("/club/{club_abbr}/season/{season_id}/stats")
 async def get_club_player_stats(club_abbr: str, season_id: int, game_type_id: int):
     """Get stats of all players of a club in a season. Example: `curl http://localhost:8080/club/EDM/season/20242025/stats?game_type_id=2`
+    
+    game_type_id = 2 (regular season), = 3 (playoff)
 
     Args:
         club_abbr (str): Example: EDM
@@ -53,7 +55,7 @@ async def get_club_player_stats(club_abbr: str, season_id: int, game_type_id: in
         game_type_id (int): Example: 2
 
     Returns:
-        _type_: _description_
+        _type_: @dto.ClubStats
     """
     return service.fetch_club_player_stats(
         club_abbr=club_abbr, season_id=season_id, game_type_id=game_type_id
