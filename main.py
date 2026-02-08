@@ -15,6 +15,18 @@ async def root():
     return {"message": "NHL Stats Fetcher"}
 
 
+@app.get("/player")
+async def search_player_by_pattern(q: str):
+    """Search player by pattern. Example: `curl http://localhost:8080/player?q=mcdav`
+    
+    Args:
+        q (str): search pattern
+        
+    Returns:
+        _type_: list[@dto.PlayerSearchResult]
+    """
+    return service.search_player_by_pattern(search_pattern=q)
+
 @app.get("/player/{player_id}/stats")
 async def get_player_stats(player_id: int):
     """Get a player stats. Example: `curl http://localhost:8080/player/8478402/stats`

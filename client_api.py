@@ -1,4 +1,5 @@
-from dto import ClubStats, PlayerLanding, TeamStandings
+from dto import ClubStats, PlayerLanding, PlayerSearchResult, TeamStandings
+from pydantic import TypeAdapter
 import requests
 from requests.models import Response
 import logging.config
@@ -12,6 +13,7 @@ TEAMS_LIST_URL = "https://api.nhle.com/stats/rest/en/team"
 TEAM_ROSTER_BY_SEASON_URL = "https://api-web.nhle.com/v1/roster/{}/{}"
 
 PLAYER_LANDING_URL = "https://api-web.nhle.com/v1/player/{}/landing"
+SEARCH_PLAYER_URL = "https://search.d3.nhle.com/api/v1/search/player?culture=en-us&limit=20&q={}"
 
 CLUB_PLAYERS_STATS_BY_SEASON_AND_GAMETYPE_URL = (
     "https://api-web.nhle.com/v1/club-stats/{}/{}/{}"
@@ -46,9 +48,24 @@ def check_response(resp: Response):
 
 
 class APIClient:
+    def search_player_by_pattern(self, search_pattern: str):
+        """
+        returns @dto.PlayerSearchResult
+        """
+        resp = requests.get(
+            url=SEARCH_PLAYER_URL.format(search_pattern),
+            headers={"Content-Type": "application/json"},
+        )
+        if (check_response(resp=resp)) is False:
+            log.error("Failed to search a player")
+            return None
+        resp_json = resp.json()
+        player_search_results: list[PlayerSearchResult] = TypeAdapter(list[PlayerSearchResult]).validate_python(resp_json) #(**resp_json)
+        return player_search_results
+    
     def get_player_landing(self, player_id: int):
         """
-        returns @client_dto.PlayerLanding
+        returns @dto.PlayerLanding
         """
         resp = requests.get(
             url=PLAYER_LANDING_URL.format(player_id),
@@ -64,7 +81,7 @@ class APIClient:
 
     def get_team_standings(self, date: str):
         """
-        returns @client_dto.TeamStandings
+        returns @dto.TeamStandings
         """
         resp = requests.get(
             url=TEAM_STANDINGS_BY_DATE_URL.format(date),
@@ -80,7 +97,7 @@ class APIClient:
 
     def get_club_player_stats(self, club_abbr: str, season: int, gametype: int):
         """
-        returns @client_dto.ClubStats
+        returns @dto.ClubStats
         """
         resp = requests.get(
             url=CLUB_PLAYERS_STATS_BY_SEASON_AND_GAMETYPE_URL.format(

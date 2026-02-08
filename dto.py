@@ -64,6 +64,15 @@ class PlayerLanding(BaseDTO):
     lastName: PlayerName
     careerTotals: CareerTotals
     seasonTotals: List[PlayerSeasonStats]
+    
+## Player search
+
+class PlayerSearchResult(BaseDTO):
+    playerId: int
+    name: str
+    
+# class PlayerSearchResults(BaseDTO):
+    
 
 
 ## Skater stats leaders

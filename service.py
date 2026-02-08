@@ -3,7 +3,7 @@ import logging.config
 from cachetools import TTLCache
 from client_api import APIClient
 
-from dto import PlayerLanding
+from dto import PlayerLanding, PlayerSearchResult
 
 logging.config.fileConfig("logging.conf")
 log = logging.getLogger("pretty")
@@ -20,6 +20,17 @@ class APIService:
     """
     Service with caching abilities atop of client api.
     """
+
+    def search_player_by_pattern(self, search_pattern: str):
+        """
+        Find players by a search_pattern.
+
+        returns list[@dto.SearchPlayerResult]
+        """
+        player_search_results: list[PlayerSearchResult] = (
+            api_client.search_player_by_pattern(search_pattern=search_pattern)
+        )
+        return player_search_results
 
     def fetch_player_landing(self, player_id: int):
         """
