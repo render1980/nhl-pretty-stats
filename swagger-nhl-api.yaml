@@ -10,6 +10,8 @@ info:
 servers:
   - url: https://api-web.nhle.com/v1
     description: Production NHL API
+  - url: https://search.d3.nhle.com/api/v1
+    description: NHL Search API
 
 tags:
   - name: Players
@@ -24,6 +26,51 @@ tags:
     description: Statistical leaders
 
 paths:
+  /search/player:
+    get:
+      tags:
+        - Players
+      summary: Search players by query
+      description: Search for players by name or pattern. Query parameters control culture, limit, and search term.
+      operationId: searchPlayer
+      parameters:
+        - name: culture
+          in: query
+          required: false
+          description: Culture/language code (e.g., en-us, fr-ca)
+          schema:
+            type: string
+            default: en-us
+            example: en-us
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 20
+            example: 20
+        - name: q
+          in: query
+          required: true
+          description: Search query pattern for player name
+          schema:
+            type: string
+            example: mcdav
+      responses:
+        '200':
+          description: Successfully retrieved matching players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlayerSearchResult'
+        '400':
+          description: Invalid query parameters
+        '500':
+          description: Server error
+
   /player/{playerId}/landing:
     get:
       tags:
@@ -302,6 +349,19 @@ paths:
 
 components:
   schemas:
+    PlayerSearchResult:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          description: The unique identifier of the player
+        name:
+          type: string
+          description: The name of the player
+      required:
+        - playerId
+        - name
+
     PlayerName:
       type: object
       properties:
