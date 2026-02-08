@@ -43,6 +43,45 @@ paths:
                     type: string
                     example: NHL Stats Fetcher
 
+  /player:
+    get:
+      tags:
+        - Players
+      summary: Search players by pattern
+      description: |
+        Search for players by name pattern. Returns a list of matching players with their IDs and names.
+        Example: http://localhost:8080/player?q=mcdav
+      operationId: searchPlayerByPattern
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search pattern for player name
+          schema:
+            type: string
+            example: mcdav
+      responses:
+        '200':
+          description: Successfully retrieved matching players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlayerSearchResult'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error or upstream API failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /player/{player_id}/stats:
     get:
       tags:
@@ -205,6 +244,19 @@ components:
           description: HTTP status code
       required:
         - detail
+
+    PlayerSearchResult:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          description: The unique identifier of the player
+        name:
+          type: string
+          description: The name of the player
+      required:
+        - playerId
+        - name
 
     PlayerName:
       type: object
