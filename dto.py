@@ -1,17 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 
 
-class ClientTeamName(BaseModel):
+class BaseDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+class ClientTeamName(BaseDTO):
     default: str
 
 
 ## Player landing (info)
-class PlayerName(BaseModel):
+class PlayerName(BaseDTO):
     default: str
 
 
-class PlayerTotalStats(BaseModel):
+class PlayerTotalStats(BaseDTO):
     assists: Optional[int] = None
     avgToi: Optional[str] = None
     faceoffWinningPctg: Optional[float] = None
@@ -32,12 +35,12 @@ class PlayerTotalStats(BaseModel):
     shootingPctg: Optional[float] = None
 
 
-class CareerTotals(BaseModel):
+class CareerTotals(BaseDTO):
     regularSeason: PlayerTotalStats
     playoffs: PlayerTotalStats
 
 
-class PlayerSeasonStats(BaseModel):
+class PlayerSeasonStats(BaseDTO):
     gameTypeId: Optional[int] = None
     season: Optional[int] = None
     gamesPlayed: Optional[int] = None
@@ -52,7 +55,7 @@ class PlayerSeasonStats(BaseModel):
     shots: Optional[int] = None
 
 
-class PlayerLanding(BaseModel):
+class PlayerLanding(BaseDTO):
     playerId: int
     isActive: bool
     currentTeamId: Optional[int] = None
@@ -64,7 +67,7 @@ class PlayerLanding(BaseModel):
 
 
 ## Skater stats leaders
-class SkaterStatsLeadersPlayer(BaseModel):
+class SkaterStatsLeadersPlayer(BaseDTO):
     id: int
     first_name: PlayerName
     last_name: PlayerName
@@ -75,14 +78,14 @@ class SkaterStatsLeadersPlayer(BaseModel):
     value: int
 
 
-class SkaterStatsLeaders(BaseModel):
+class SkaterStatsLeaders(BaseDTO):
     assists: List[SkaterStatsLeadersPlayer]
     goals: List[SkaterStatsLeadersPlayer]
     points: List[SkaterStatsLeadersPlayer]
 
 
 ## Goalie stats leaders
-class GoalieStatsLeadersPlayer(BaseModel):
+class GoalieStatsLeadersPlayer(BaseDTO):
     id: int
     first_name: PlayerName
     last_name: PlayerName
@@ -93,17 +96,17 @@ class GoalieStatsLeadersPlayer(BaseModel):
     value: int
 
 
-class GoalieStatsLeaders(BaseModel):
+class GoalieStatsLeaders(BaseDTO):
     wins: List[GoalieStatsLeadersPlayer]
     shutouts: List[GoalieStatsLeadersPlayer]
 
 
 ## Team standings
-class TeamStandingsTeamName(BaseModel):
+class TeamStandingsTeamName(BaseDTO):
     default: str
 
 
-class TeamStanding(BaseModel):
+class TeamStanding(BaseDTO):
     conferenceAbbrev: Optional[str] = None
     conferenceHomeSequence: Optional[int] = None
     conferenceL10Sequence: Optional[int] = None
@@ -182,13 +185,13 @@ class TeamStanding(BaseModel):
     wins: Optional[int] = None
 
 
-class TeamStandings(BaseModel):
+class TeamStandings(BaseDTO):
     wildCardIndicator: bool
     standings: List[TeamStanding]
 
 
 ## Club stats
-class ClubStatsSkater(BaseModel):
+class ClubStatsSkater(BaseDTO):
     playerId: int
     firstName: PlayerName
     lastName: PlayerName
@@ -210,7 +213,7 @@ class ClubStatsSkater(BaseModel):
     faceoffWinPctg: float
 
 
-class ClubStatsGoalie(BaseModel):
+class ClubStatsGoalie(BaseDTO):
     playerId: int
     firstName: PlayerName
     lastName: PlayerName
@@ -232,7 +235,7 @@ class ClubStatsGoalie(BaseModel):
     timeOnIce: int
 
 
-class ClubStats(BaseModel):
+class ClubStats(BaseDTO):
     season: str
     gameType: int
     skaters: List[ClubStatsSkater]
@@ -240,7 +243,7 @@ class ClubStats(BaseModel):
 
 
 ## All teams stats
-class TeamStatsData(BaseModel):
+class TeamStatsData(BaseDTO):
     faceoff_win_pct: float
     games_played: int
     goals_against: int
@@ -267,12 +270,12 @@ class TeamStatsData(BaseModel):
     wins_in_shootout: int
 
 
-class AllTeamsStats(BaseModel):
+class AllTeamsStats(BaseDTO):
     data: List[TeamStatsData]
 
 
 ## Teams and rosters
-class Team(BaseModel):
+class Team(BaseDTO):
     id: int
     franchise_id: int
     full_name: str
@@ -281,11 +284,11 @@ class Team(BaseModel):
     tri_code: str
 
 
-class RosterPlayerName(BaseModel):
+class RosterPlayerName(BaseDTO):
     default: str
 
 
-class RosterPlayerInfo(BaseModel):
+class RosterPlayerInfo(BaseDTO):
     id: int
     first_name: RosterPlayerName
     last_name: RosterPlayerName
@@ -298,7 +301,7 @@ class RosterPlayerInfo(BaseModel):
     birth_country: str
 
 
-class TeamRoster(BaseModel):
+class TeamRoster(BaseDTO):
     forwards: List[RosterPlayerInfo]
     defensemen: List[RosterPlayerInfo]
     goalies: List[RosterPlayerInfo]
