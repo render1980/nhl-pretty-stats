@@ -6,7 +6,7 @@
   - GP, P, G, A, +/-, PIM, P/GP, PPG, PPP, SHG, SHP, OTG, S, S%, TOI/GP, FOW%
 - Compare player A career total (regular season) VS player B career total (regular season)
   - GP, P, G, A, PPG, PPP, S, S%, OTG, PIM, +/-, SHP, SHG
-- Compare player A career total (regular season) VS player B career total (regular season)
+- Compare player A career total (playoff) VS player B career total (playoff)
   - GP, P, G, A, PPG, PPP, S, S%, OTG, PIM, +/-, SHP, SHG
 
 ### Teams
