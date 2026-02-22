@@ -1,10 +1,10 @@
-There are 3 jupyter notebooks in server/ folder: players_comparison.ipynb, club_player_stats_comparison.ipynb, player_subsets_comparison.ipynb.
+There is a notebook in server/ folder: players_comparison.ipynb.
 
-Every notebook first should have two text fields "Player A Name" and "Player B Name" for user input. Two calls should be executed once a user writes values there for every value. Endpoint is "http://localhost:8080/player?q={player_a_or_b_name}". Having either of two values or both two is fine. Response structure - dto.py@PlayerSearchResult. The playerId field in the response should be saved in the variables "player_a_id" and "player_b_id" for both calls.
+Notebook first should have two text fields "Player A Name" and "Player B Name" for user input. Two calls should be executed once a user writes values there for every value. Endpoint is "http://localhost:8080/player?q={player_a_or_b_name}". Having either of two values or both two is fine. Response structure - dto.py@PlayerSearchResult. The playerId field in the response should be saved in the variables "player_a_id" and "player_b_id" for both calls.
 
-Then I need to fill those 3 notebooks with:
+Then I need to fill the notebook with:
 
-1. players_comparison.ipynb should call endpoint main.py@get_player_stats with player_a_id and player_b_id. The response structure is dto.py@PlayerLanding. From the PlayerLanding for every player display next tables.
+1. Call endpoint main.py@get_player_stats with player_a_id and player_b_id. The response structure is dto.py@PlayerLanding. From the PlayerLanding for every player display next tables.
 
 1.1. "Season Totals". Field PlayerLanding.seasonTotals in the response. Season should be chosen based on a user input in the field "player_a_season". gameTypeId should be chosen based on a user input in the field "player_a_game_type_id". The same for the player b. Also there should be a separate table with the aggregated season totals for all seasons for both players.
 
