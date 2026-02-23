@@ -38,7 +38,6 @@ async def get_player_stats(player_id: int):
         _type_: @dto.PlayerLanding
     """
     return service.fetch_player_landing(player_id=player_id)
-    # return {"message": f"player_id={player_id}"}
 
 
 @app.get("/standings")
@@ -52,7 +51,6 @@ async def get_team_standings(date: str):
         _type_: @dto.TeamStandings
     """
     return service.fetch_team_standings(date=date)
-    # return {"message": f"date={date}"}
 
 
 @app.get("/club/{club_abbr}/season/{season_id}/stats")
@@ -72,10 +70,6 @@ async def get_club_player_stats(club_abbr: str, season_id: int, game_type_id: in
     return service.fetch_club_player_stats(
         club_abbr=club_abbr, season_id=season_id, game_type_id=game_type_id
     )
-    # return {
-    #     "message": f"club_abbr={club_abbr} season_id={season_id} game_type_id={game_type_id}"
-    # }
-
 
 if __name__ == "__main__":
     import uvicorn
