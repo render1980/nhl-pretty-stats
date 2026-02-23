@@ -1,0 +1,7 @@
+There is a notebook in server/ folder: players_subsets_comparison.ipynb.
+
+Notebook should be similar to players_comparison.ipynb but allow to define two subsets of players.
+For each subset need to aggregate every attribute and display aggregated values.
+Highlight with red color attributed with higher value.
+Endpoints to call and responses are the same.
+Stats should be the same.

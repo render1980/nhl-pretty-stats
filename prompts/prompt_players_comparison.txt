@@ -9,3 +9,6 @@ Then I need to fill the notebook with:
 1.1. "Season Totals". Field PlayerLanding.seasonTotals in the response. Season should be chosen based on a user input in the field "player_a_season". gameTypeId should be chosen based on a user input in the field "player_a_game_type_id". The same for the player b. Also there should be a separate table with the aggregated season totals for all seasons for both players.
 
 1.2. "Career Totals". Similar to season totals but given the structure CareerTotals.
+
+Notebook should be modified to allow to add multiple player search patterns to search and then compare with each other.
+'Season totals comparison' code cell should be modified to support multiple players comparison by attributes.

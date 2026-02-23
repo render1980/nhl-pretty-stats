@@ -1,0 +1,15 @@
+There is a notebook in noteboks/ folder: club_player_stats_comparison.ipynb.
+
+Notebook should allow to add multiple club abbreviatures. Inputs should be similar to inputs in players_comparison.ipynb first cell.
+Also there should be an input for season (format example: '20242025' means from 2024 to 2025 season). Fill select with seasons starting from 19701971.
+Also an input for game_type_id (see example in players_comparison.ipynb). Values: 2 - regular season and 3 - playoff.
+
+Every abbreviature along with season and game_type_id should be used in the request to the endpoint.
+Example: http://localhost:8080/club/EDM/season/20242025/stats?game_type_id=2 where EDM -club abbreviature, 20242025 - season and game_type_id=2 - regular season.
+See: main.py@get_club_player_stats. Response will be @dto.ClubStats.
+
+For every club from the response for a given season and game_type_id I need to display stats:
+- for all skaters (dto.py@ClubStatsSkater)
+- for all goalies (dto.py@ClubStatsGoalie)
+
+Then below - display aggregated player stats for clubs and highlight bigger numbers with red color (similar to players_comparison.ipynb).
