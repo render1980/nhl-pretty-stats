@@ -42,3 +42,18 @@ def get_player_info(player_search_pattern):
         else:
             print(f"✗ Error searching Player {player_search_pattern}: {response.status_code}")
     return None
+
+def get_table_with_players_subset_data(fields, subset_a, subset_a_names, subset_b, subset_b_names):
+    data = []
+    for field in fields:
+        row = {'Metric': field}
+        if subset_a:
+            row[subset_a_names] = subset_a.get(field, 0)
+        else:
+            row[subset_a_names] = '-'
+        if subset_b:
+            row[subset_b_names] = subset_b.get(field, 0)
+        else:
+            row[subset_b_names] = '-'
+        data.append(row)
+    return data
