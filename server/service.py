@@ -9,6 +9,7 @@ logging.config.fileConfig("logging.conf")
 log = logging.getLogger("pretty")
 
 # Cache with a max size of 10000 and a TTL of 1 day
+players_by_pattern_cache = TTLCache(maxsize=10000, ttl=180000)
 player_langings_cache = TTLCache(maxsize=10000, ttl=86400)
 team_standings_cache = TTLCache(maxsize=10000, ttl=86400)
 club_player_stats_cache = TTLCache(maxsize=10000, ttl=86400)
@@ -27,9 +28,15 @@ class APIService:
 
         returns list[@dto.SearchPlayerResult]
         """
+        cache_key = f"{search_pattern}"
+        if cache_key in players_by_pattern_cache:
+            log.debug(f"Players are found in cache for the pattern {search_pattern}")
+            return players_by_pattern_cache[cache_key]
+        log.debug(f"Players are not found in cache. Fetching from API.")
         player_search_results: list[PlayerSearchResult] = (
             api_client.search_player_by_pattern(search_pattern=search_pattern)
         )
+        players_by_pattern_cache[cache_key] = player_search_results
         return player_search_results
 
     def fetch_player_landing(self, player_id: int):
