@@ -75,7 +75,6 @@ class APIClient:
             log.error("Failed to get player stats")
             return None
         resp_json = resp.json()
-        log.info(f"### Player landing data: {resp_json}")
         landing: PlayerLanding = PlayerLanding(**resp_json)
         return landing
 
