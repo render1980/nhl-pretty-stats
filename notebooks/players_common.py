@@ -57,3 +57,42 @@ def get_table_with_players_subset_data(fields, subset_a, subset_a_names, subset_
             row[subset_b_names] = '-'
         data.append(row)
     return data
+
+def get_career_totals(player_data):
+    """Extract career totals from player data
+    
+    Args:
+        player_data (dict): Player data containing careerTotals
+        
+    Returns:
+        dict or None: Career totals object or None if not available
+    """
+    if not player_data or 'careerTotals' not in player_data:
+        return None
+    return player_data['careerTotals']
+
+def build_career_stats_comparison(players_data, stat_fields, career_type):
+    """Build comparison data for career statistics (regularSeason or playoffs)
+    
+    Args:
+        players_data (dict): Dictionary with player info including 'name' and 'data'
+        stat_fields (list): List of stat field names to compare
+        career_type (str): Type of career stats - 'regularSeason' or 'playoffs'
+        
+    Returns:
+        list: List of dictionaries with 'Metric' and player stats for comparison
+    """
+    comparison_data = []
+    for field in stat_fields:
+        row = {'Metric': field}
+        for player_info in players_data.values():
+            player_name = player_info['name']
+            player_data = player_info['data']
+            career_totals = get_career_totals(player_data)
+            if career_totals and career_type in career_totals:
+                career_stats = career_totals[career_type]
+                row[player_name] = career_stats.get(field, '-')
+            else:
+                row[player_name] = '-'
+        comparison_data.append(row)
+    return comparison_data
